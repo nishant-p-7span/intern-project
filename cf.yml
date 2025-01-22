@@ -19,8 +19,38 @@ Resources:
           curl -fsSL https://get.docker.com -o install-docker.sh
           sh install-docker.sh
           apt-get install -y git
-          git clone <repo-name>
-          docker compose -f ./<repo-name>/docker-compose.yml up -d
+          git clone https://github.com/nishant-p-7span/intern-project.git /home/ubuntu/intern-project
+          docker compose -f /home/ubuntu/intern-project/docker-compose.yml up -d
+      Tags:
+        - Key: Name
+          Value: Production
+  
+  MyInstance2:
+    Type: AWS::EC2::Instance
+    Properties:
+      AvailabilityZone: ap-south-1a
+      ImageId: ami-00bb6a80f01f03502
+      InstanceType: t2.micro
+      BlockDeviceMappings:
+        - DeviceName: /dev/sda1
+          Ebs:
+            VolumeSize: 8
+      SecurityGroups:
+        - !Ref MySecurityGroup
+      UserData:
+        Fn::Base64: |
+          #!/bin/bash
+          apt-get update -y
+          apt-get upgrade -y
+          curl -fsSL https://get.docker.com -o install-docker.sh
+          sh install-docker.sh
+          apt-get install -y git
+          git clone https://github.com/nishant-p-7span/intern-project.git /home/ubuntu/intern-project
+          git checkout develop
+          docker compose -f /home/ubuntu/intern-project/docker-compose.yml up -d
+      Tags:
+        - Key: Name
+          Value: Development
           
   MySecurityGroup:
     Type: AWS::EC2::SecurityGroup
