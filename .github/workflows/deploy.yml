@@ -1,0 +1,40 @@
+name: Deploy to Server
+
+on:
+  push:
+    branches:
+      - main
+      - develop
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Set up SSH
+        uses: webfactory/ssh-agent@v0.5.3
+        with:
+          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+
+      - name: Deploy to server
+        env:
+          BRANCH_NAME: ${{ github.ref_name }}
+        run: |
+          if [ "$BRANCH_NAME" == "main" ]; then
+            SERVER_IP=${{ secrets.MAIN_SERVER_IP }}
+          elif [ "$BRANCH_NAME" == "develop" ]; then
+            SERVER_IP=${{ secrets.DEVELOP_SERVER_IP }}
+          else
+            echo "No server configured for this branch"
+            exit 1
+          fi
+
+          ssh -o StrictHostKeyChecking=no ubuntu@$SERVER_IP << 'EOF'
+            cd /home/ubuntu/intern-project
+            sudo git pull
+            sudo docker compose down
+            sudo docker compose up -d
+          EOF
